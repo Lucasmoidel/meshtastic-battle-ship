@@ -50,11 +50,15 @@ def sendPacket(i, x=0, y=0):
     elif i == 1:
         interface.sendText(("hit " + str(x) + " " + str(y)), channelIndex=1, wantAck=True)
         status = "the enemy has hit your boat at " + letters[y] + str(x+1)
-        turn = True
     elif i == 2:
         interface.sendText(("miss " + str(x) + " " + str(y)), channelIndex=1, wantAck=True)
         status = "the enemy has missed at " + letters[y] + str(x+1)
-        turn = True
+                
+
+    elif i == 3:
+        interface.sendText(("ok hit " + str(x) + " " + str(y)), channelIndex=1, wantAck=True)
+    elif i == 4:
+        interface.sendText(("ok miss " + str(x) + " " + str(y)), channelIndex=1, wantAck=True)
     elif i == -1:
         interface.sendText("start game", channelIndex=1, wantAck=True)
         status = "init game"
@@ -99,10 +103,21 @@ def onReceive(packet, interface, screen):
                     enemy[0].append([x, y, False])
                     print(enemy)
                     status = "hit " + letters[y] + str(x+1)
+                    sendPacket(3, x, y)
                 if packet['from'] == target and packet['decoded']['payload'][:4] == b'miss':
                     x = int(packet['decoded']['payload'].decode('utf-8').split(" ")[1])
                     y = int(packet['decoded']['payload'].decode('utf-8').split(" ")[2])
                     status = "miss " + letters[y] + str(x+1)
+                    sendPacket(4, x, y)
+                if packet['from'] == target and packet['decoded']['payload'][:6] == b'ok hit':
+                    x = int(packet['decoded']['payload'].decode('utf-8').split(" ")[1])
+                    y = int(packet['decoded']['payload'].decode('utf-8').split(" ")[2])
+                    
+                    turn = True
+                if packet['from'] == target and packet['decoded']['payload'][:7] == b'ok miss':
+                    x = int(packet['decoded']['payload'].decode('utf-8').split(" ")[1])
+                    y = int(packet['decoded']['payload'].decode('utf-8').split(" ")[2])
+                    turn = True
                 if packet['from'] == target and packet['decoded']['payload'][:6] == b'attack':
                     x = int(packet['decoded']['payload'].decode('utf-8').split(" ")[1])
                     y = int(packet['decoded']['payload'].decode('utf-8').split(" ")[2])
@@ -123,6 +138,8 @@ def onReceive(packet, interface, screen):
                             turn = False
                     if b == 0:
                         sendPacket(2, x, y)
+
+                    
 
 
 
@@ -146,6 +163,9 @@ def findDevices():
             devices.append([i, iface.getLongName()])
             iface.close()
         except meshtastic.serial.serialutil.SerialException:
+            print("deal")
+            break
+        except meshtastic.mesh_interface.MeshInterface.MeshInterfaceError:
             print("deal")
             break
     done = True
