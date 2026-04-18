@@ -11,8 +11,9 @@ running = True
 
 state = 1
 
+boatlen = [3, 3, 2]
 #boatlen = [5, 4, 3, 3, 2]
-boatlen = [2]
+#boatlen = [2]
 direction = True
 
 rPressed = False
